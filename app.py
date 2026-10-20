@@ -3006,7 +3006,7 @@ elif cur == "Volontari (con foto)":
     cognome_def = edit_data.get("Cognome", "")
     comune_def = edit_data.get("Comune", "Varese")
     via_def = edit_data.get("Via", "")
-    capo_odv_def = edit_data.get("CapoODV", "")
+    capo_odv_def = edit_data.get("CapoODV", "GAE")
     odv_app_def = edit_data.get("ODVAppartenenza", "ANA Varese")
     cell_def = edit_data.get("Cellulare", "")
     email_def = edit_data.get("Email", "")
@@ -3067,7 +3067,7 @@ elif cur == "Volontari (con foto)":
         st.markdown("#### 📞 Contatti")
         c1, c2 = st.columns(2)
         with c1:
-            cellulare = st.text_input("Cellulare *", value=cell_def, key="vol_cell_tab")
+            cellulare = st.text_input("Cellulare", value=cell_def, key="vol_cell_tab")
             email = st.text_input("Email", value=email_def, key="vol_email_tab")
         with c2:
             tel_emerg = st.text_input("Telefono Emergenza", value=tel_em_def, key="vol_tel_em")
@@ -3122,7 +3122,7 @@ elif cur == "Volontari (con foto)":
         cognome = st.session_state.get("vol_cognome_tab", cognome_def) or cognome_def
         comune_res = st.session_state.get("vol_comune_tab", comune_def) or comune_def
         via = st.session_state.get("vol_via_tab", via_def) or via_def
-        capo_odv = st.session_state.get("vol_capo_odv", capo_odv_def) or capo_odv_def
+        capo_odv = st.session_state.get("vol_capo_odv", capo_odv_def) or capo_odv_def or "GAE"
         odv_app = st.session_state.get("vol_odv_app", odv_app_def) or odv_app_def
         cellulare = st.session_state.get("vol_cell_tab", cell_def) or cell_def
         email = st.session_state.get("vol_email_tab", email_def) or email_def
@@ -3164,7 +3164,7 @@ elif cur == "Volontari (con foto)":
     if edit_mode:
         with col_btn1:
             if st.button("🔄 AGGIORNA VOLONTARIO", type="primary", use_container_width=True):
-                if nome and cognome and capo_odv:
+                if nome and cognome:
                     updated = {
                         "Nome": nome,
                         "Cognome": cognome,
@@ -3192,7 +3192,7 @@ elif cur == "Volontari (con foto)":
                     st.success("Volontario aggiornato con ODV OK")
                     st.rerun()
                 else:
-                    st.error("Compila Nome, Cognome, Cellulare e Capo ODV *")
+                    st.error("Compila Nome e Cognome *")
         with col_btn2:
             if st.button("❌ ANNULLA", use_container_width=True):
                 st.session_state.vol_edit_index = None
