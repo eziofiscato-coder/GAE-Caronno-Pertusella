@@ -3116,7 +3116,7 @@ elif cur == "Volontari (con foto)":
             st.image(foto_preview, width=150, caption="Foto da prima maschera")
             st.download_button("⬇️ Download Foto da Prima Maschera", data=foto_preview, file_name=f"foto_{nome}_{cognome}.jpg", mime="image/jpeg", use_container_width=True, key="download_foto_da_prima")
 
-    # FIX CRITICO - Ezio - Rileggi da session_state VOLONTARI per non perdere dati
+    # FIX CRITICO - Ezio - Rileggi da session_state VOLONTARI per non perdere dati - FIX DEFINITIVO TUTTE LE VARIABILI
     try:
         nome = st.session_state.get("vol_nome_tab", nome_def) or nome_def
         cognome = st.session_state.get("vol_cognome_tab", cognome_def) or cognome_def
@@ -3130,13 +3130,46 @@ elif cur == "Volontari (con foto)":
         note_cont = st.session_state.get("vol_note_cont", edit_data.get("NoteContatti","")) or edit_data.get("NoteContatti","")
         ruolo = st.session_state.get("vol_ruolo_tab", ruolo_def) or ruolo_def
         squadra = st.session_state.get("vol_squadra_tab", squadra_def) or squadra_def
-        codice_fisc = st.session_state.get("vol_cf", codfisc_def) or codfisc_def
-        radio_id = st.session_state.get("vol_radio_id", radio_def) or radio_def
-        doc_tipo = st.session_state.get("vol_doc_tipo", doc_tipo_def) or doc_tipo_def
-        doc_num = st.session_state.get("vol_doc_num", doc_num_def) or doc_num_def
-        foto_preview = st.session_state.get("foto_temp_prima", foto_preview) or edit_data.get("FotoBytes")
+        codice_fisc = st.session_state.get("vol_cf", codfisc_def) or codfisc_def or ""
+        radio_id = st.session_state.get("vol_radio_id", radio_def) or radio_def or ""
+        doc_tipo = st.session_state.get("vol_doc_tipo", doc_tipo_def) or doc_tipo_def or ""
+        doc_num = st.session_state.get("vol_doc_num", doc_num_def) or doc_num_def or ""
+        foto_preview = st.session_state.get("foto_temp_prima", None) or st.session_state.get("foto_temp", None) or edit_data.get("FotoBytes")
+        # Variabili che prima mancavano e causavano errore su AGGIORNA
+        data_nascita = st.session_state.get("vol_data_nasc", None) or date(1970,1,1)
+        doc_scad = st.session_state.get("vol_doc_scad", None) or date.today()
+        modello_radio = st.session_state.get("vol_radio_mod", "Hytera PD785") or "Hytera PD785"
+        data_iscriz = st.session_state.get("vol_data_iscr", None) or date.today()
+        stato_vol = st.session_state.get("vol_stato", "Attivo") or "Attivo"
+        note_dot = st.session_state.get("vol_note_dot", "") or ""
     except Exception as e:
         print(f"Errore rilettura volontari: {e}")
+        # Fallback per non crashare
+        try:
+            nome = nome_def
+            cognome = cognome_def
+            comune_res = comune_def
+            via = via_def
+            capo_odv = capo_odv_def or "GAE"
+            odv_app = odv_app_def
+            cellulare = cell_def
+            email = email_def
+            tel_emerg = tel_em_def
+            ruolo = ruolo_def
+            squadra = squadra_def
+            codice_fisc = ""
+            radio_id = ""
+            doc_tipo = ""
+            doc_num = ""
+            foto_preview = None
+            data_nascita = date(1970,1,1)
+            doc_scad = date.today()
+            modello_radio = "Hytera PD785"
+            data_iscriz = date.today()
+            stato_vol = "Attivo"
+            note_dot = ""
+        except:
+            pass
 
     st.markdown('</div>', unsafe_allow_html=True)
     st.divider()
@@ -3164,35 +3197,79 @@ elif cur == "Volontari (con foto)":
     if edit_mode:
         with col_btn1:
             if st.button("🔄 AGGIORNA VOLONTARIO", type="primary", use_container_width=True):
-                if nome and cognome:
-                    updated = {
-                        "Nome": nome,
-                        "Cognome": cognome,
-                        "Comune": comune_res,
-                        "Via": via,
-                        "CapoODV": capo_odv,
-                        "ODVAppartenenza": odv_app,
-                        "DataNascita": str(data_nascita),
-                        "CodFisc": codice_fisc,
-                        "Cellulare": cellulare,
-                        "Email": email,
-                        "TelEmergenza": tel_emerg,
-                        "Ruolo": ruolo,
-                        "Squadra": squadra,
-                        "RadioID": radio_id,
-                        "ModelloRadio": modello_radio,
-                        "Documento": doc_tipo,
-                        "DocNum": doc_num,
-                        "ScadDoc": str(doc_scad),
-                        "FotoBytes": foto_preview,
-                        "DataAgg": datetime.now().strftime("%d/%m/%Y %H:%M")
-                    }
-                    st.session_state.volontari[st.session_state.vol_edit_index] = updated
-                    st.session_state.vol_edit_index = None
-                    st.success("Volontario aggiornato con ODV OK")
-                    st.rerun()
-                else:
-                    st.error("Compila Nome e Cognome *")
+                try:
+                    # Rileggi tutto da session_state per sicurezza
+                    nome_e = st.session_state.get("vol_nome_tab", nome) or nome
+                    cognome_e = st.session_state.get("vol_cognome_tab", cognome) or cognome
+                    if not nome_e or not cognome_e:
+                        st.error("Compila Nome e Cognome *")
+                    else:
+                        comune_e = st.session_state.get("vol_comune_tab", comune_res) or comune_res
+                        via_e = st.session_state.get("vol_via_tab", via) or via
+                        capo_e = st.session_state.get("vol_capo_odv", capo_odv) or capo_odv or "GAE"
+                        odv_e = st.session_state.get("vol_odv_app", odv_app) or odv_app
+                        if st.session_state.get("vol_odv_app") == "Altro":
+                            odv_e = st.session_state.get("vol_odv_custom", "") or odv_e
+                        cell_e = st.session_state.get("vol_cell_tab", cellulare) or cellulare
+                        email_e = st.session_state.get("vol_email_tab", email) or email
+                        tel_e = st.session_state.get("vol_tel_em", tel_emerg) or tel_emerg
+                        ruolo_e = st.session_state.get("vol_ruolo_tab", ruolo) or ruolo
+                        squadra_e = st.session_state.get("vol_squadra_tab", squadra) or squadra
+                        codfisc_e = st.session_state.get("vol_cf", codice_fisc) or codice_fisc
+                        radio_e = st.session_state.get("vol_radio_id", radio_id) or radio_id
+                        mod_radio_e = st.session_state.get("vol_radio_mod", modello_radio) or modello_radio
+                        doc_tipo_e = st.session_state.get("vol_doc_tipo", doc_tipo) or doc_tipo
+                        doc_num_e = st.session_state.get("vol_doc_num", doc_num) or doc_num
+                        data_nasc_e = st.session_state.get("vol_data_nasc", data_nascita) or data_nascita
+                        doc_scad_e = st.session_state.get("vol_doc_scad", doc_scad) or doc_scad
+                        foto_e = st.session_state.get("foto_temp_prima", foto_preview) or st.session_state.get("foto_temp", None) or foto_preview or edit_data.get("FotoBytes")
+                        
+                        updated = {
+                            "Nome": str(nome_e).strip(),
+                            "Cognome": str(cognome_e).strip(),
+                            "Comune": str(comune_e),
+                            "Via": str(via_e),
+                            "CapoODV": str(capo_e).strip(),
+                            "ODVAppartenenza": str(odv_e),
+                            "DataNascita": str(data_nasc_e),
+                            "CodFisc": str(codfisc_e),
+                            "Cellulare": str(cell_e),
+                            "Email": str(email_e),
+                            "TelEmergenza": str(tel_e),
+                            "Ruolo": str(ruolo_e),
+                            "Squadra": str(squadra_e),
+                            "RadioID": str(radio_e),
+                            "ModelloRadio": str(mod_radio_e),
+                            "Documento": str(doc_tipo_e),
+                            "DocNum": str(doc_num_e),
+                            "ScadDoc": str(doc_scad_e),
+                            "FotoBytes": foto_e,
+                            "DataAgg": datetime.now().strftime("%d/%m/%Y %H:%M")
+                        }
+                        st.session_state.volontari[st.session_state.vol_edit_index] = updated
+                        # Pulisci edit
+                        st.session_state.vol_edit_index = None
+                        for k in [k for k in list(st.session_state.keys()) if k.startswith("vol_") and k not in ["volontari","vol_tab_active"]]:
+                            try:
+                                del st.session_state[k]
+                            except:
+                                pass
+                        for k in ["foto_temp_prima","foto_temp"]:
+                            if k in st.session_state:
+                                try:
+                                    del st.session_state[k]
+                                except:
+                                    pass
+                        try:
+                            save_all_data_persistente()
+                        except:
+                            pass
+                        st.success(f"Volontario {cognome_e} {nome_e} aggiornato!")
+                        st.balloons()
+                        import time; time.sleep(0.7); st.rerun()
+                except Exception as e:
+                    st.error(f"Errore aggiornamento: {e}")
+                    import traceback; st.code(traceback.format_exc())
         with col_btn2:
             if st.button("❌ ANNULLA", use_container_width=True):
                 st.session_state.vol_edit_index = None
@@ -5712,8 +5789,20 @@ elif cur == "Mappe Postazioni":
                 st.error(f"❌ Errore: {e}")
 
     st.divider()
+    # === SOTTO-MASCHERA MAPPE - 2 TAB: Anteprima + Mappa Grande con Marker Salvati - Suggerimento Ezio ===
+    st.markdown("### 🗺️ Sotto-Maschere Mappe - Organizzate")
+    tab_anteprima, tab_grande = st.tabs(["📍 Anteprima + Inserimento (clicca per aggiungere)", "🌍 Mappa Grande + Elenco Postazioni (Export Excel/PDF)"])
+    
+    with tab_anteprima:
+        st.info("Clicca sulla mappa anteprima sotto per inserire Lat/Lon automatico in maschera sopra - I marker si fissano e si vedono in mappa grande")
+    
+    with tab_grande:
+        st.markdown("#### 📊 Export Postazioni - Excel / PDF - Con Postazione, Alias, Cognome Nome, Cell, ID Radio")
+        # Export continua sotto nel tab grande
+
     # === EXPORT MAPPE - Excel e PDF con Postazione, Alias, Cognome Nome, Cell, ID Radio - Richiesta Ezio ===
-    st.markdown("#### 📊 Export Postazioni - Excel / PDF")
+    with tab_grande:
+        st.markdown("#### 📊 Export Postazioni - Excel / PDF")
     all_markers_export = st.session_state.get("mappa_avanzata_markers", [])
     if all_markers_export:
         # Prepara dati per export con RadioID da volontari
@@ -5784,8 +5873,9 @@ elif cur == "Mappe Postazioni":
         st.info("Nessuna postazione salvata - Inserisci da maschera sopra")
 
     st.divider()
-    st.markdown("#### 🗺️ Anteprima - Tutti i marker visibili - +/- sotto")
-    all_markers = st.session_state.get("mappa_avanzata_markers", [])
+    with tab_anteprima:
+        st.markdown("#### 🗺️ Anteprima - Tutti i marker visibili - Clicca per inserire")
+        all_markers = st.session_state.get("mappa_avanzata_markers", [])
     focus_marker = st.session_state.get("map_focus")
     import json as json_lib
     def clean_marker_for_json(m):
@@ -6016,8 +6106,9 @@ elif cur == "Mappe Postazioni":
     preview_html = preview_html.replace("SELECTED_FILEB64_PREVIEW", json_lib_prev.dumps(sel_fileb64_prev))
     st.components.v1.html(preview_html, height=450)
 
-    st.divider()
-    st.markdown("#### 🌍 Mappa Grande - Tutti i marker rimangono")
+    with tab_grande:
+        st.divider()
+        st.markdown("#### 🌍 Mappa Grande - Tutti i marker rimangono - Sotto-maschera con tutti i marker salvati")
 
     html_code = """
     <div id="map-container" style="position:relative; background:white; border-radius:12px;">
