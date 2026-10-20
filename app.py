@@ -81,10 +81,10 @@ if "hub_page" not in st.session_state:
     st.session_state.hub_page = "hub"
 
 MENU_ADMINISTRATIVO = [
-    "Dashboard","Volontari (con foto)","Ospiti","Verbali","Archivio Documenti","Diplomi Attestati","Spese ODV per Evento","Note Spese","Report Filtro","Statistiche","Impostazioni","Gestione Utenti","Google Sheets Multi Utente","Backup"
+    "Dashboard","Volontari (con foto)","Ospiti","Verbali","Archivio Documenti","Diplomi Attestati","Spese ODV per Evento","Note Spese","Report Filtro","Statistiche","Impostazioni","Gestione Utenti","Backup"
 ]
 MENU_OPERATIVO = [
-    "Dashboard","Volontari (con foto)","Ospiti","DB Radio","Consegna Radio","Alias Radio","Brogliaccio","Eventi","Tabella Emergenze","Check-in","Interventi Emergenza","Tabella Interventi Emergenza","Mezzi","Attrezzature","Mappe Postazioni","Libreria Icone","Turni","Chat","Google Sheets Multi Utente","Backup Eventi"
+    "Dashboard","Volontari (con foto)","Ospiti","DB Radio","Consegna Radio","Alias Radio","Brogliaccio","Eventi","Tabella Emergenze","Check-in","Interventi Emergenza","Tabella Interventi Emergenza","Mezzi","Attrezzature","Mappe Postazioni","Libreria Icone","Turni","Chat","Backup Eventi"
 ]
 st.set_page_config(
     page_title="ANA Varese - Caronno Pertusella - Dashboard",
@@ -2569,7 +2569,6 @@ with st.sidebar:
             "Libreria Icone",
             "Turni",
             "Chat",
-            "Google Sheets Multi Utente",
             "Verbali",
             "Archivio Documenti",
             "Diplomi Attestati",
@@ -2579,7 +2578,6 @@ with st.sidebar:
             "Statistiche",
             "Impostazioni",
             "Gestione Utenti",
-            "Google Sheets Multi Utente",
             "Backup"
         ]
     else:
@@ -5797,11 +5795,6 @@ elif cur == "Mappe Postazioni":
                 }
                 st.session_state.mappa_avanzata_markers.append(nuovo)
                 st.session_state.map_focus = nuovo
-                # Salva persistente subito - FIX secondo marker
-                try:
-                    save_all_data_persistente()
-                except Exception as e:
-                    print(f"Errore save persistente marker: {e}")
                 # Pulisci last_clicked dopo salvataggio per non tenere default prima posizione marker
                 for k in ["last_clicked_lat", "last_clicked_lon", "last_clicked_comune", "last_clicked_via"]:
                     if k in st.session_state:
@@ -5809,17 +5802,13 @@ elif cur == "Mappe Postazioni":
                             del st.session_state[k]
                         except:
                             pass
-                st.success(f"✅ SALVATA {marker_nome} - Totale {len(st.session_state.mappa_avanzata_markers)} marker - Ora puoi inserire altro marker cliccando di nuovo sulla mappa anteprima VERDE")
-                st.balloons()
+                st.success(f"✅ SALVATA {marker_nome} - Totale {len(st.session_state.mappa_avanzata_markers)}")
                 try:
                     st.query_params.clear()
                 except:
                     pass
-                # Incrementa versione per pulire maschera dopo salvataggio - FIX secondo marker anteprima
+                # Incrementa versione per pulire maschera dopo salvataggio
                 st.session_state["map_form_version"] = st.session_state.get("map_form_version", 0) + 1
-                # Piccola pausa per far vedere messaggio prima di rerun
-                import time as time_marker
-                time_marker.sleep(1.2)
                 st.rerun()
             except Exception as e:
                 st.error(f"❌ Errore: {e}")
@@ -5865,8 +5854,7 @@ elif cur == "Mappe Postazioni":
     map_active = st.session_state.map_tab_active
     
     if map_active == 0:
-        tot_markers = len(st.session_state.get("mappa_avanzata_markers", []))
-        st.markdown(f'<div style="background:#1A5D1A;color:white;padding:8px;border-radius:6px;text-align:center;font-weight:bold;">📍 PRIMA MASCHERA - VERDE - Solo mappa anteprima dove metti i marker - Tolta seconda mappa sotto - Hai {tot_markers} marker salvati - Clicca mappa per aggiungerne altro</div>', unsafe_allow_html=True)
+        st.markdown('<div style="background:#1A5D1A;color:white;padding:8px;border-radius:6px;text-align:center;font-weight:bold;">📍 PRIMA MASCHERA - VERDE - Solo mappa anteprima dove metti i marker - Tolta seconda mappa sotto</div>', unsafe_allow_html=True)
     elif map_active == 1:
         st.markdown('<div style="background:#d32f2f;color:white;padding:8px;border-radius:6px;text-align:center;font-weight:bold;">🌍 SECONDA MASCHERA - ROSSA - Mappa con marker inseriti + Tabella</div>', unsafe_allow_html=True)
     else:
@@ -9999,83 +9987,13 @@ elif cur == "Backup":
 
 
 
-elif cur == "Google Sheets Multi Utente":
-    hdr_form("GOOGLE SHEETS MULTI UTENTE")
-    
-    # Importa modulo Google Sheets
-    try:
-        import google_sheets_multiuser as gs
-        # Mostra UI
-        gs.render_google_sheets_ui()
-    except ImportError as e:
-        st.error(f"Modulo Google Sheets non trovato: {e}")
-        st.info("Assicurati che google_sheets_multiuser.py sia nella stessa cartella di app.py")
-        # Fallback: mostra istruzioni manuali
-        st.markdown("""
-        ### 🌐 Google Sheets Multi Utente - Configurazione Manuale
-        
-        **Per attivare multi-utente:**
-        1. Aggiungi a requirements.txt:
-        ```
-        gspread
-        google-auth
-        google-auth-oauthlib
-        google-auth-httplib2
-        ```
-        2. Crea file google_sheets_multiuser.py (già fornito)
-        3. Riavvia app
-        """)
-    except Exception as e:
-        st.error(f"Errore Google Sheets: {e}")
-        import traceback
-        st.code(traceback.format_exc())
-    
-    st.divider()
-    st.markdown("### 🔧 Funzionalità Avanzate Multi Utente")
-    
-    # Auto-sync toggle
-    st.subheader("⚡ Auto-Sync (Sperimentale)")
-    auto_sync = st.checkbox("Abilita auto-sync ogni 5 minuti", value=False, key="auto_sync_gs")
-    if auto_sync:
-        st.info("Auto-sync attivo - I dati verranno sincronizzati automaticamente")
-        # Qui si potrebbe aggiungere logica di auto-sync con st_autorefresh
-        
-    # Conflitti
-    st.subheader("⚠️ Gestione Conflitti")
-    st.markdown("""
-    **Come funziona multi-utente:**
-    - Ogni utente ha copia locale (session_state)
-    - Quando clicchi 'Salva su Google Sheets' → invii tuoi dati al cloud
-    - Quando clicchi 'Carica da Google Sheets' → prendi dati aggiornati di tutti
-    - Se due utenti modificano stesso record, vince ultimo che salva
-    
-    **Best practice:**
-    1. **Carica** sempre prima di iniziare a lavorare
-    2. Lavora su volontari/postazioni diversi da colleghi se possibile
-    3. **Salva** spesso su Google Sheets
-    4. Comunica in Chat chi sta modificando cosa
-    """)
-    
-    # Lista utenti attivi
-    try:
-        from datetime import datetime
-        import json as js
-        if os.path.exists("presenza.json"):
-            with open("presenza.json", "r", encoding="utf-8") as f:
-                presenza = js.load(f)
-            st.subheader("👥 Utenti Attivi Ora")
-            for p in presenza:
-                st.markdown(f"- **{p.get('nome')}** ({p.get('username')}) - {p.get('ruolo')} - {p.get('ora','')}")
-    except:
-        pass
-
 # Footer
 st.divider()
 st.markdown(
     """
     <div style="text-align:center;padding:8px;background:linear-gradient(135deg,#1A5D1A,#2e7d32);border-radius:8px;color:white;font-size:12px;">
-    ANA Varese - Dashboard | Volontari linguette + ODV | Date gg/mm/aaaa | Backup Import/Export | Google Sheets Multi Utente<br>
-    Sviluppato per Ezio - Multi Utente con Google Sheets
+    ANA Varese - Dashboard | Volontari linguette + ODV | Date gg/mm/aaaa | Backup Import/Export<br>
+    Sviluppato per Ezio
     </div>
     """,
     unsafe_allow_html=True
