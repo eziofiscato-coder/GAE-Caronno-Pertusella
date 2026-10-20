@@ -108,7 +108,7 @@ def set_background_varese():
                             break
                 except:
                     pass
-        html_code = '<div id="gae-watermark" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 750px; height: 750px; opacity: 0.45; z-index: 0; pointer-events: none; background-image: url(data:image/jpeg;base64,' + b64_data + '); background-repeat: no-repeat; background-position: center; background-size: contain;"></div><style>[data-testid="stAppViewContainer"]{background:white !important;}.main .block-container{background:rgba(255,255,255,0.75) !important;position:relative !important;z-index:1 !important;}[data-testid="stSidebar"]{z-index:2 !important;}[data-testid="stHeader"]{z-index:3 !important;}</style>'
+        html_code = '<div id="gae-watermark" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; opacity: 0.40; z-index: 0; pointer-events: none; background-image: url(data:image/jpeg;base64,' + b64_data + '); background-repeat: no-repeat; background-position: center; background-size: contain;"></div><style>[data-testid="stAppViewContainer"]{background:white !important;}.main .block-container{background:rgba(255,255,255,0.75) !important;position:relative !important;z-index:1 !important;}[data-testid="stSidebar"]{z-index:2 !important;}[data-testid="stHeader"]{z-index:3 !important;}</style>'
         st.markdown(html_code, unsafe_allow_html=True)
     except:
         pass
