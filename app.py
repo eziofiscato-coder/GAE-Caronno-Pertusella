@@ -1751,7 +1751,7 @@ def hdr():
 def hdr_form(t):
     st.markdown(
         f"""
-        <h2 style="font-family:'Times New Roman',Times,serif;font-weight:bold;color:white;background: linear-gradient(135deg,#1A5D1A 0%,#2e7d32 100%);border: 3px solid #FFD700;padding:200px 50px!important;margin-top:0px;margin-bottom:8px;font-size:28px;border-radius:16px;width:100%;display:block;box-sizing:border-box;letter-spacing:0.8px;font-weight:900;">
+        <h2 style="font-family:'Times New Roman',Times,serif;font-weight:bold;color:white;background: linear-gradient(135deg,#1A5D1A 0%,#2e7d32 100%);border: 3px solid #FFD700;padding:200px 50px !important;margin-top:0px;margin-bottom:8px;font-size:28px;border-radius:16px;width:100%;display:block;box-sizing:border-box;letter-spacing:0.8px;font-weight:900;">
         {t}
         </h2>
         """,
