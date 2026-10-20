@@ -108,7 +108,7 @@ def set_background_varese():
                             break
                 except:
                     pass
-        html_code = '<div id="gae-watermark" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 750px; height: 750px; opacity: 0.6; z-index: 0; pointer-events: none; background-image: url(data:image/jpeg;base64,' + b64_data + '); background-repeat: no-repeat; background-position: center; background-size: contain;"></div><style>[data-testid="stAppViewContainer"]{background:white !important;}.main .block-container{background:rgba(255,255,255,0.75) !important;position:relative !important;z-index:1 !important;}[data-testid="stSidebar"]{z-index:2 !important;}[data-testid="stHeader"]{z-index:3 !important;}</style>'
+        html_code = '<div id="gae-watermark" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 750px; height: 750px; opacity: 0.45; z-index: 0; pointer-events: none; background-image: url(data:image/jpeg;base64,' + b64_data + '); background-repeat: no-repeat; background-position: center; background-size: contain;"></div><style>[data-testid="stAppViewContainer"]{background:white !important;}.main .block-container{background:rgba(255,255,255,0.75) !important;position:relative !important;z-index:1 !important;}[data-testid="stSidebar"]{z-index:2 !important;}[data-testid="stHeader"]{z-index:3 !important;}</style>'
         st.markdown(html_code, unsafe_allow_html=True)
     except:
         pass
@@ -1728,15 +1728,15 @@ def hdr():
             min-height:115px;box-sizing:border-box;">
                                 <p style="margin:0;font-family:Times New Roman;
                 font-weight:bold;font-size:22px;color:white;line-height:1.3;letter-spacing:0.5px;text-align:center;">
-                GAE - Gruppo Assistenza Emergenza
+                Squadra Volontari di protezione civile - Gruppo Alpini di Caronno Pertusella Bariola
                 </p>
                 <p style="margin:6px 0 0 0;font-family:Times New Roman;
                 font-weight:bold;font-size:20px;color:white;line-height:1.25;letter-spacing:0.5px;text-align:center;">
-                CARONNO PERTUSELLA - VARESE
+                NUCLEO VOLONTARI DI P.C. A.N.A. - SEZIONE DI VARESE
                 </p>
                 <p style="margin:6px 0 0 0;font-family:Times New Roman;
                 font-weight:bold;font-size:18px;color:white;line-height:1.2;letter-spacing:0.8px;text-align:center;">
-                ODV - Organizzazione Volontari di Protezione Civile
+                ASSOCIAZIONE NAZIONALE ALPINI
                 </p>
             </div>
             """,
@@ -5385,17 +5385,9 @@ elif cur == "Mappe Postazioni":
         key_cell = k_map("adv_marker_cell_vol")
         # Usa cell_trovata se esiste, altrimenti usa cell_auto già calcolato da selezione precedente
         final_cell_value = cell_trovata if cell_trovata else cell_auto
-        # FIX DEFINITIVO - Aggiorna session_state con cell trovato quando selezioni volontario
-        if final_cell_value and final_cell_value != st.session_state.get(key_cell, ""):
-            st.session_state[key_cell] = final_cell_value
-        # Se ODV trovato da volontario, aggiorna anche ODV
-        key_odv = k_map("adv_odv_combo")
-        if odv_trovata:
-            # Aggiorna ODV se diverso
-            if odv_trovata in odv_options:
-                if st.session_state.get(key_odv) != odv_trovata:
-                    st.session_state[key_odv] = odv_trovata
-        marker_cell_vol = st.text_input("📱 Cell. (da Volontario/Ospite)", value=st.session_state.get(key_cell, final_cell_value), key=key_cell, placeholder="Si riempie auto quando selezioni volontario", help=f"Cell di {sel_vol_combo} - auto agganciato da Volontari/Ospiti - ODV: {odv_trovata}")
+        # FIX DEFINITIVO EZIO - NON toccare session_state di widget già istanziato (evita StreamlitWidgetAlreadyInstantiatedError)
+        # Usiamo solo variabili locali per display
+        marker_cell_vol = st.text_input("📱 Cell. (da Volontario/Ospite)", value=final_cell_value, key=key_cell, placeholder="Si riempie auto quando selezioni volontario", help=f"Cell di {sel_vol_combo} - auto agganciato da Volontari/Ospiti - ODV: {odv_trovata}")
         # Per salvataggio usa valore da session_state o final
         if final_cell_value:
             marker_cell_vol = final_cell_value
