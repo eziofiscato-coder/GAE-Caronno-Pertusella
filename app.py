@@ -1728,15 +1728,15 @@ def hdr():
             min-height:115px;box-sizing:border-box;">
                                 <p style="margin:0;font-family:Times New Roman;
                 font-weight:bold;font-size:22px;color:white;line-height:1.3;letter-spacing:0.5px;text-align:center;">
-                Squadra Volontari di protezione civile - Gruppo Alpini di Caronno Pertusella Bariola
+                GAE - Gruppo Assistenza Emergenza
                 </p>
                 <p style="margin:6px 0 0 0;font-family:Times New Roman;
                 font-weight:bold;font-size:20px;color:white;line-height:1.25;letter-spacing:0.5px;text-align:center;">
-                NUCLEO VOLONTARI DI P.C. A.N.A. - SEZIONE DI VARESE
+                CARONNO PERTUSELLA - VARESE
                 </p>
                 <p style="margin:6px 0 0 0;font-family:Times New Roman;
                 font-weight:bold;font-size:18px;color:white;line-height:1.2;letter-spacing:0.8px;text-align:center;">
-                ASSOCIAZIONE NAZIONALE ALPINI
+                ODV - Organizzazione Volontari di Protezione Civile
                 </p>
             </div>
             """,
