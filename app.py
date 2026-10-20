@@ -3310,25 +3310,35 @@ elif cur == "Volontari (con foto)":
                         nuovo = {"Nome": str(nome).strip(),"Cognome": str(cognome).strip(),"Comune": str(comune_res),"Via": str(via),"CapoODV": str(capo_odv).strip(),"ODVAppartenenza": str(odv_app),"DataNascita": str(data_nascita),"CodFisc": str(codice_fisc),"Cellulare": str(cellulare),"Email": str(email),"TelEmergenza": str(tel_emerg),"Ruolo": str(ruolo),"Squadra": str(squadra),"RadioID": str(radio_id),"ModelloRadio": str(modello_radio),"Documento": str(doc_tipo),"DocNum": str(doc_num),"ScadDoc": str(doc_scad),"FotoBytes": foto_preview,"DataIns": datetime.now().strftime("%d/%m/%Y %H:%M")}
                         if "volontari" not in st.session_state:
                             st.session_state.volontari = []
+                        # Controllo duplicato opzionale - permette stesso nome ma avvisa
                         st.session_state.volontari.append(nuovo)
-                        st.success(f"Volontario {cognome} {nome} salvato!")
+                        # Salva subito persistente prima di pulire
+                        try:
+                            save_all_data_persistente()
+                        except Exception as e:
+                            print(f"Errore save persistente dopo append: {e}")
+                        st.success(f"✅ Volontario {cognome} {nome} salvato! Totale volontari: {len(st.session_state.volontari)}")
                         st.balloons()
-                        for k in [k for k in list(st.session_state.keys()) if k.startswith("vol_") and k not in ["volontari","vol_tab_active"]]:
+                        # Pulizia robusta per permettere secondo inserimento - FIX SECONDO VOLONTARIO
+                        keys_to_del = [k for k in list(st.session_state.keys()) if k.startswith("vol_") and k not in ["volontari","vol_tab_active"]]
+                        for k in keys_to_del:
                             try:
                                 del st.session_state[k]
                             except:
                                 pass
-                        for k in ["foto_temp_prima","foto_temp"]:
+                        # Pulisci anche foto
+                        for k in ["foto_temp_prima","foto_temp","foto_temp_seconda"]:
                             if k in st.session_state:
                                 try:
                                     del st.session_state[k]
                                 except:
                                     pass
-                        try:
-                            save_all_data_persistente()
-                        except:
-                            pass
-                        import time; time.sleep(0.7); st.rerun()
+                        # Reset esplicito per prossimo inserimento
+                        st.session_state["vol_nome_tab"] = ""
+                        st.session_state["vol_cognome_tab"] = ""
+                        st.session_state["vol_cell_tab"] = ""
+                        # Non serve time.sleep troppo lungo
+                        import time; time.sleep(0.5); st.rerun()
                 except Exception as e:
                     st.error(f"Errore salvataggio: {e}")
                     import traceback; st.code(traceback.format_exc())
@@ -5789,46 +5799,60 @@ elif cur == "Mappe Postazioni":
                 st.error(f"❌ Errore: {e}")
 
     st.divider()
-    # === SOTTO-MASCHERA MAPPE - SOLO MAPPA CON MARKER FISSI + LINGUETTE COLORATE - Richiesta Ezio ===
-    st.markdown("### 🗺️ Sotto-Maschera - Mappa con Marker Fissi")
+    # === SOTTO-MASCHERA MAPPE - 3 LINGUETTE COLORATE - Richiesta Ezio PRECISA ===
+    # Tab1 verde: solo mappa anteprima dove metto i marker
+    # Tab2 rossa: mappa con marker inseriti + tabella
+    # Tab3 gialla: solo maschera con marker inseriti per PDF/Excel
+    st.markdown("### 🗺️ Sotto-Maschere Mappe")
     
-    # Linguette colorate per mappe - come volontari
     if "map_tab_active" not in st.session_state:
         st.session_state.map_tab_active = 0
     
     st.markdown("""
     <style>
-    /* Colora linguette mappe */
-    div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-child(1) button[kind="secondary"] {background:#1A5D1A !important; color:white !important; border:2px solid #FFD700 !important; font-weight:bold !important;}
-    div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-child(2) button[kind="secondary"] {background:#1976d2 !important; color:white !important; border:2px solid #FFD700 !important; font-weight:bold !important;}
-    div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-child(3) button[kind="secondary"] {background:#ff9800 !important; color:white !important; border:2px solid #FFD700 !important; font-weight:bold !important;}
-    button[kind="primary"] {border:3px solid #FFD700 !important;}
+    /* Linguette colorate mappe - Richiesta Ezio: verde, rossa, gialla */
+    div[data-testid="stButton"] button[kind="secondary"] {font-weight:bold !important; border:2px solid #333 !important; border-radius:8px 8px 0 0 !important;}
+    /* Verde - Prima maschera anteprima */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {background:#1A5D1A !important; color:white !important; border:2px solid #FFD700 !important;}
+    /* Rossa - Seconda maschera mappa marker + tabella */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {background:#d32f2f !important; color:white !important; border:2px solid #FFD700 !important;}
+    /* Gialla - Terza maschera export */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {background:#FFD700 !important; color:black !important; border:2px solid #1A5D1A !important;}
+    button[kind="primary"] {border:4px solid #FFD700 !important; transform:scale(1.05);}
     </style>
     """, unsafe_allow_html=True)
     
     c_map_tab1, c_map_tab2, c_map_tab3 = st.columns(3)
     with c_map_tab1:
-        if st.button("🌍 Mappa con Marker Fissi", key="map_tab_btn_0", use_container_width=True, type="primary" if st.session_state.map_tab_active==0 else "secondary"):
+        if st.button("📍 1° MASCHERA - Mappa Anteprima (dove metto marker)", key="map_tab_btn_0", use_container_width=True, type="primary" if st.session_state.map_tab_active==0 else "secondary"):
             st.session_state.map_tab_active = 0
             st.rerun()
     with c_map_tab2:
-        if st.button("📊 Elenco Postazioni + Export", key="map_tab_btn_1", use_container_width=True, type="primary" if st.session_state.map_tab_active==1 else "secondary"):
+        if st.button("🌍 2° MASCHERA - Mappa Marker Inseriti + Tabella", key="map_tab_btn_1", use_container_width=True, type="primary" if st.session_state.map_tab_active==1 else "secondary"):
             st.session_state.map_tab_active = 1
             st.rerun()
     with c_map_tab3:
-        if st.button("📍 Anteprima Inserimento", key="map_tab_btn_2", use_container_width=True, type="primary" if st.session_state.map_tab_active==2 else "secondary"):
+        if st.button("📊 3° MASCHERA - Export PDF/Excel (solo marker inseriti)", key="map_tab_btn_2", use_container_width=True, type="primary" if st.session_state.map_tab_active==2 else "secondary"):
             st.session_state.map_tab_active = 2
             st.rerun()
     
     map_active = st.session_state.map_tab_active
     
-    # Mostra solo mappa con marker fissi se tab 0, elenco se tab 1, anteprima se tab 2
-    if map_active == 1:
-        st.markdown("#### 📊 Export Postazioni - Excel / PDF - Con Postazione, Alias, Cognome Nome, Cell, ID Radio")
-    # === EXPORT MAPPE - Excel e PDF con Postazione, Alias, Cognome Nome, Cell, ID Radio - Richiesta Ezio ===
-    if map_active == 1:
-        st.markdown("#### 📊 Export Postazioni - Excel / PDF")
-    all_markers_export = st.session_state.get("mappa_avanzata_markers", [])
+    if map_active == 0:
+        st.markdown('<div style="background:#1A5D1A;color:white;padding:8px;border-radius:6px;text-align:center;font-weight:bold;">📍 PRIMA MASCHERA - VERDE - Solo mappa anteprima dove metti i marker - Tolta seconda mappa sotto</div>', unsafe_allow_html=True)
+    elif map_active == 1:
+        st.markdown('<div style="background:#d32f2f;color:white;padding:8px;border-radius:6px;text-align:center;font-weight:bold;">🌍 SECONDA MASCHERA - ROSSA - Mappa con marker inseriti + Tabella</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div style="background:#FFD700;color:black;padding:8px;border-radius:6px;text-align:center;font-weight:bold;border:2px solid #1A5D1A;">📊 TERZA MASCHERA - GIALLA - Solo maschera con marker inseriti per creazione PDF ed Excel</div>', unsafe_allow_html=True)
+    
+    # === EXPORT MAPPE - Solo in tab gialla ===
+    if map_active == 2:
+        st.markdown("#### 📊 Export Postazioni - Excel / PDF - Solo marker inseriti")
+    # Export solo in tab gialla (map_active==2) - terza maschera
+    if map_active == 2:
+        st.markdown("#### 📊 Terza Maschera GIALLA - Solo maschera con marker inseriti per PDF/Excel")
+    all_markers_export = st.session_state.get("mappa_avanzata_markers", []) if map_active == 2 else []
+    # Export solo in gialla, anteprima solo in verde, mappa grande solo in rossa
     if all_markers_export:
         # Prepara dati per export con RadioID da volontari
         export_rows = []
@@ -5894,17 +5918,18 @@ elif cur == "Mappe Postazioni":
                     pass
                 st.warning("Tutte le postazioni azzerate")
                 st.rerun()
-    else:
-        st.info("Nessuna postazione salvata - Inserisci da maschera sopra")
+    elif map_active == 2:
+        st.info("Nessuna postazione salvata - Inserisci da prima maschera verde")
 
-    st.divider()
-    if map_active == 2:
-        st.markdown("#### 🗺️ Anteprima - Tutti i marker visibili - Clicca per inserire (solo inserimento)")
+    # Logica 3 tab: 0 verde solo anteprima, 1 rossa mappa marker + tabella, 2 gialla export
+    if map_active == 0:
+        st.markdown("#### 📍 Prima Maschera - VERDE - Solo mappa anteprima dove metto i marker")
         all_markers = st.session_state.get("mappa_avanzata_markers", [])
-    elif map_active == 0:
-        st.markdown("#### 🌍 Mappa Grande - Solo Mappa con Marker Fissi - Richiesta Ezio")
+    elif map_active == 1:
+        st.markdown("#### 🌍 Seconda Maschera - ROSSA - Mappa con marker inseriti + Tabella")
         all_markers = st.session_state.get("mappa_avanzata_markers", [])
     else:
+        st.markdown("#### 📊 Terza Maschera - GIALLA - Solo maschera marker inseriti per PDF/Excel")
         all_markers = st.session_state.get("mappa_avanzata_markers", [])
     focus_marker = st.session_state.get("map_focus")
     import json as json_lib
@@ -6134,11 +6159,17 @@ elif cur == "Mappe Postazioni":
     preview_html = preview_html.replace("SELECTED_COLOR_PREVIEW", json_lib_prev.dumps(sel_c_prev))
     preview_html = preview_html.replace("SELECTED_HASFILE_PREVIEW", json_lib_prev.dumps(sel_hasfile_prev))
     preview_html = preview_html.replace("SELECTED_FILEB64_PREVIEW", json_lib_prev.dumps(sel_fileb64_prev))
-    st.components.v1.html(preview_html, height=450)
-
+    # Prima maschera VERDE: solo mappa anteprima dove metto marker - tolta seconda mappa sotto
     if map_active == 0:
+        st.components.v1.html(preview_html, height=450)
+        st.info("📍 Prima maschera VERDE - Clicca sulla mappa sopra per mettere marker - Lat/Lon vanno in maschera automatico - Solo questa mappa, tolta seconda mappa sotto")
+    elif map_active == 1:
         st.divider()
-        st.markdown("#### 🌍 Mappa Grande - Tutti i marker rimangono - SOLO Mappa con Marker Fissi (Richiesta Ezio)")
+        st.markdown("#### 🌍 Seconda Maschera ROSSA - Mappa con marker inseriti + tabella")
+
+    if map_active == 1:
+        # Placeholder per mappa grande che verrà dopo
+        pass
 
     html_code = """
     <div id="map-container" style="position:relative; background:white; border-radius:12px;">
