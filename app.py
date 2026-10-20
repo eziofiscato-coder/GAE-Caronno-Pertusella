@@ -444,6 +444,122 @@ if st.session_state.get("page") != "entra" and st.session_state.get("logged", Fa
 # FIX GLOBALE DISABILITATO - ora icona è vero tasto bottone, non link
 # Gestione query param disabilitata - icona ora è vero bottone st.button, non link <a>
 
+def hdr():
+
+    """
+    Header con 2 loghi affiancati + intestazione centrata - FIX DEFINITIVO logo_volontario_ana.jpeg
+    """
+    # Colonne con allineamento verticale centrato
+    try:
+        c1, c2, c3 = st.columns([0.9, 0.9, 4.2], vertical_alignment="center")
+    except:
+        c1, c2, c3 = st.columns([0.9, 0.9, 4.2])
+
+    # CSS specifico header
+    st.markdown("""
+    <style>
+    div[data-testid="column"]:has(> div > div > img) {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    with c1:
+        # LOGO 1 - VOLONTARIO ANA - DEVE ESSERE SEMPRE QUI
+        logo1_ok = False
+        # cerca con tutti i nomi possibili + case insensitive
+        possibili_logo1 = [
+            "logo_volontariato-varese.jpg", "logo_volontariato-varese.jpeg",
+            "logo_volontariato_varese.jpg", "logo_volontariato_varese.jpeg",
+            "logo_volontario_ana.jpeg", "logo_volontari_ana.jpeg", 
+            "logo_volontario_ana.jpg", "logo_volontari_ana.jpg",
+            "logo_volontario_ana.png", "logo.png"
+        ]
+        for p in possibili_logo1:
+            if os.path.exists(p):
+                try:
+                    st.image(p, width=110)
+                    logo1_ok = True
+                    break
+                except:
+                    continue
+        if not logo1_ok:
+            # se non trova file, mostra placeholder che ricorda di caricare file ma NON scritta ANA semplice
+            # prova a listare cosa c'è nella cartella per debug
+            try:
+                files = [f for f in os.listdir(".") if "logo" in f.lower() or "ana" in f.lower()]
+                # st.caption(f"Debug file trovati: {files}") # scommenta se vuoi vedere
+                pass
+            except:
+                pass
+            # fallback con logo embedded se esiste in /tmp o altro
+            st.markdown(
+                """
+                <div style="width:100px;height:100px;background:white;
+                border-radius:12px;display:flex;align-items:center;
+                justify-content:center;color:#1A5D1A;font-weight:bold;
+                font-size:12px;text-align:center;border:2px solid #1A5D1A;">
+                LOGO<br>ANA<br><small>carica<br>logo_volontario_ana.jpeg</small>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    
+    with c2:
+        # LOGO 2 - SEZIONE DI VARESE - quello che già vedi nello screenshot
+        logo2_ok = False
+        for p in ["SEZIONE DI VARESE.jpg", "sezione_di_varese.jpg", "gruppo_CPB.jpeg", "logo2.png", "gruppo_caronno.png", "logo_gruppo.png", "Gruppo_Caronno.png", "/mnt/data/gruppo_CPB.jpeg", "logo_varese.jpeg"]:
+            if os.path.exists(p):
+                try:
+                    st.image(p, width=110)
+                    logo2_ok = True
+                    break
+                except:
+                    continue
+        if not logo2_ok:
+            st.markdown(
+                """
+                <div style="width:100px;height:100px;background:#0D47A1;
+                border-radius:12px;display:flex;align-items:center;
+                justify-content:center;color:white;font-weight:bold;
+                font-size:12px;text-align:center;">
+                GRUPPO
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    with c3:
+        st.markdown(
+            """
+            <div style="background:linear-gradient(135deg,#1A5D1A 0%,#2e7d32 100%);
+            padding:12px 16px;border-radius:10px;color:white;
+            text-align:center;border:3px solid #1A5D1A;
+            display:flex;flex-direction:column;justify-content:center;align-items:center;
+            min-height:115px;box-sizing:border-box;">
+                                <p style="margin:0;font-family:Times New Roman;
+                font-weight:bold;font-size:22px;color:white;line-height:1.3;letter-spacing:0.5px;text-align:center;">
+                Squadra Volontari di protezione civile - Gruppo Alpini di Caronno Pertusella Bariola
+                </p>
+                <p style="margin:6px 0 0 0;font-family:Times New Roman;
+                font-weight:bold;font-size:20px;color:white;line-height:1.25;letter-spacing:0.5px;text-align:center;">
+                NUCLEO VOLONTARI DI P.C. A.N.A. - SEZIONE DI VARESE
+                </p>
+                <p style="margin:6px 0 0 0;font-family:Times New Roman;
+                font-weight:bold;font-size:18px;color:white;line-height:1.2;letter-spacing:0.8px;text-align:center;">
+                ASSOCIAZIONE NAZIONALE ALPINI
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+
+
 # PAGINA ENTRA - con footer fisso in basso Developed by Ezio F. 2026 Vers 1.0 - Logo cartoon
 if st.session_state.page == "entra":
     hdr()
