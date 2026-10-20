@@ -1627,7 +1627,7 @@ def to_pdf(df, tit):
         else:
             story.append(Paragraph("Nessun dato disponibile", styles["Normal"]))
 
-        doc.build(story, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf)
+        doc.build(story, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf)
         buf.seek(0)
         return buf.getvalue()
     except Exception as e:
@@ -7918,7 +7918,7 @@ elif cur == "Verbali":
                         t_firme = Table(data_firme, colWidths=[7.5*cm, 7.5*cm])
                         t_firme.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER'), ('FONTSIZE', (0,0), (-1,-1), 9), ('FONTNAME', (0,0), (0,0), 'Helvetica-Bold'),]))
                         story.append(t_firme)
-                        doc.build(story, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf)
+                        doc.build(story, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf)
                         buf.seek(0)
                         return buf.getvalue()
                     except Exception as e:
@@ -8827,7 +8827,7 @@ elif cur == "Report Filtro":
                             from reportlab.lib.styles import getSampleStyleSheet
                             styles = getSampleStyleSheet()
                             story = [Paragraph(f"Report {sel_form_label} - {len(filtered_display)} record", styles['Normal']), Spacer(1,12), t]
-                            doc.build(story, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf); buf.seek(0)
+                            doc.build(story, onFirstPage=add_gae_watermark_to_pdf, onLaterPages=add_gae_watermark_to_pdf); buf.seek(0)
                             st.download_button(f"⬇️ PDF ({len(df_report)})", data=buf.getvalue(), file_name=f"report_{sel_form_key}.pdf", mime="application/pdf", use_container_width=True, key="dl_pdf_report_final")
                         except Exception as e: st.error(f"PDF: {e}")
 
