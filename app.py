@@ -108,7 +108,7 @@ def set_background_varese():
                             break
                 except:
                     pass
-        html_code = '<div id="gae-watermark" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; opacity: 0.40; z-index: 0; pointer-events: none; background-image: url(data:image/jpeg;base64,' + b64_data + '); background-repeat: no-repeat; background-position: center; background-size: contain;"></div><style>[data-testid="stAppViewContainer"]{background:white !important;}.main .block-container{background:rgba(255,255,255,0.75) !important;position:relative !important;z-index:1 !important;}[data-testid="stSidebar"]{z-index:2 !important;}[data-testid="stHeader"]{z-index:3 !important;}</style>'
+        html_code = '<div id="gae-watermark" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 750px; height: 750px; opacity: 0.45; z-index: 0; pointer-events: none; background-image: url(data:image/jpeg;base64,' + b64_data + '); background-repeat: no-repeat; background-position: center; background-size: contain;"></div><style>[data-testid="stAppViewContainer"]{background:white !important;}.main .block-container{background:rgba(255,255,255,0.75) !important;position:relative !important;z-index:1 !important;}[data-testid="stSidebar"]{z-index:2 !important;}[data-testid="stHeader"]{z-index:3 !important;}</style>'
         st.markdown(html_code, unsafe_allow_html=True)
     except:
         pass
@@ -1867,6 +1867,96 @@ def inject_popout_splash():
 
 
 
+
+# === PERSISTENZA DATI - FIX EZIO - SALVA SU FILE JSON PER NON PERDERE DATI SU REBOOT ===
+import json, os
+
+DATA_FILE = "dati_persistenti.json"
+BACKUP_EVENTI_FILE = "backup_eventi.json"
+
+def save_all_data_persistente():
+    """Salva tutti i dati in file JSON - non perdere volontari su reboot"""
+    try:
+        dati = {}
+        chiavi_da_salvare = ["volontari", "ospiti", "radio_db", "consegna_radio", "alias_radio", "brogliaccio", "eventi", "emergenze", "checkin", "mezzi", "attrezzature", "mappe", "icone", "turni", "chat", "interventi", "backup_eventi", "spese_odv", "verbali", "documenti", "diplomi", "note_spese"]
+        for k in chiavi_da_salvare:
+            if k in st.session_state:
+                val = st.session_state[k]
+                # Pulisci bytes foto per JSON
+                if isinstance(val, list):
+                    clean_list = []
+                    for item in val:
+                        if isinstance(item, dict):
+                            clean_item = {}
+                            for kk, vv in item.items():
+                                if "Bytes" not in kk and "B64" not in kk and "Foto" not in kk:
+                                    try:
+                                        json.dumps(vv, default=str)
+                                        clean_item[kk] = vv
+                                    except:
+                                        clean_item[kk] = str(vv)
+                                else:
+                                    # Salva foto come base64 se presente? Per ora salta per non appesantire
+                                    if vv:
+                                        clean_item[kk] = ""  # Non salvare foto pesanti, solo dati testuali
+                                    else:
+                                        clean_item[kk] = ""
+                            clean_list.append(clean_item)
+                        else:
+                            clean_list.append(str(item))
+                    dati[k] = clean_list
+                else:
+                    try:
+                        json.dumps(val, default=str)
+                        dati[k] = val
+                    except:
+                        dati[k] = str(val)
+        # Salva file principale
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(dati, f, ensure_ascii=False, indent=2, default=str)
+        # Salva anche backup_eventi separato
+        if "backup_eventi" in dati and dati["backup_eventi"]:
+            with open(BACKUP_EVENTI_FILE, "w", encoding="utf-8") as f:
+                json.dump(dati["backup_eventi"], f, ensure_ascii=False, indent=2, default=str)
+        return True
+    except Exception as e:
+        print(f"Errore save persistente: {e}")
+        return False
+
+def load_all_data_persistente():
+    """Carica dati da file JSON se esiste"""
+    try:
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                dati = json.load(f)
+            for k, v in dati.items():
+                if k not in st.session_state or not st.session_state[k]:
+                    st.session_state[k] = v
+                else:
+                    # Se già presente in session ma vuoto file, unisci
+                    if isinstance(v, list) and isinstance(st.session_state[k], list):
+                        if len(st.session_state[k]) == 0 and len(v) > 0:
+                            st.session_state[k] = v
+            return True
+        if os.path.exists(BACKUP_EVENTI_FILE):
+            with open(BACKUP_EVENTI_FILE, "r", encoding="utf-8") as f:
+                be = json.load(f)
+            if "backup_eventi" not in st.session_state or not st.session_state["backup_eventi"]:
+                st.session_state["backup_eventi"] = be
+        return False
+    except Exception as e:
+        print(f"Errore load persistente: {e}")
+        return False
+
+def save_single_form_persistente(chiave):
+    """Salva solo un form dopo inserimento volontario"""
+    try:
+        save_all_data_persistente()
+    except:
+        pass
+
+
+
 def init_session():
 
 
@@ -1937,9 +2027,20 @@ def init_session():
         "attivazioni": []
     }
 
+    # Carica dati persistenti prima di impostare defaults vuoti
+    try:
+        load_all_data_persistente()
+    except:
+        pass
+
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
+    # Ricarica dopo defaults per sovrascrivere se file ha dati
+    try:
+        load_all_data_persistente()
+    except:
+        pass
 
 # --- GESTIONE UTENTI + PRESENZA CHAT - Ezio richiesta - FIX accesso negato ---
 import json
@@ -3146,6 +3247,10 @@ elif cur == "Volontari (con foto)":
                                     del st.session_state[k]
                                 except:
                                     pass
+                        try:
+                            save_all_data_persistente()
+                        except:
+                            pass
                         import time; time.sleep(0.7); st.rerun()
                 except Exception as e:
                     st.error(f"Errore salvataggio: {e}")
