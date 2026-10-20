@@ -3279,12 +3279,15 @@ elif cur == "Volontari (con foto)":
         with col_btn1:
             if st.button("💾 SALVA VOLONTARIO", type="primary", use_container_width=True):
                 try:
-                    nome = st.session_state.get("vol_nome_tab", "") or ""
-                    cognome = st.session_state.get("vol_cognome_tab", "") or ""
+                    nome_ss = st.session_state.get("vol_nome_tab", "") or ""
+                    cognome_ss = st.session_state.get("vol_cognome_tab", "") or ""
+                    nome_loc = locals().get("nome", "") or ""
+                    cognome_loc = locals().get("cognome", "") or ""
+                    nome = (nome_ss or nome_loc or "").strip()
+                    cognome = (cognome_ss or cognome_loc or "").strip()
                     capo_odv = st.session_state.get("vol_capo_odv", "") or "GAE"
-                    # FIX EZIO - ORA BASTA NOME E COGNOME, CAPO ODV FACOLTATIVO CON DEFAULT GAE
                     if not nome or not cognome:
-                        st.error("Compila Nome e Cognome *")
+                        st.error(f"Compila Nome e Cognome * - Usa TAB non Enter - Nome='{nome}' Cognome='{cognome}'")
                     else:
                         if not capo_odv:
                             capo_odv = "GAE"
@@ -6038,13 +6041,13 @@ elif cur == "Mappe Postazioni":
         var mk;
         if(md.hasFile && md.fileB64){
             var ic = L.icon({iconUrl:'data:image/png;base64,'+md.fileB64,iconSize:[36,36],iconAnchor:[18,18]});
-            mk=L.marker([md.lat,md.lon],{icon:ic}).addTo(pMap).bindPopup("<b>📍 "+md.nome+"</b><br>📻 Alias Radio: <b>"+(md.alias||"--")+"</b> - Chiamata<br>🏙️ Comune: "+md.comune+"<br>📍 Via: "+md.via+"<br>Lat: "+md.lat+" Lon: "+md.lon+"<br><small>Emergenza: "+(md.emergenza||"--")+" | Evento: "+(md.evento||"--")+"</small>");
+            mk=L.marker([md.lat,md.lon],{icon:ic}).addTo(pMap).bindPopup("<b>📍 "+md.nome+"</b><br>📻 Alias: <b>"+(md.alias||"--")+"</b><br>👤 "+(md.nomeVol||"")+" "+(md.cognomeVol||"")+(md.cellVol ? "<br>📱 Cell: "+md.cellVol : "")+(md.odv ? "<br>📋 ODV: "+md.odv : "")+"<br>🏙️ Comune: "+md.comune+"<br>📍 Via: "+md.via+"<br>Lat: "+md.lat+" Lon: "+md.lon);
         } else {
             // Fallback emoji/colore se non ha file - mostra comunque marker
             var colorMap = {'red':'#d32f2f','blue':'#1976d2','green':'#388e3c','orange':'#f57c00','purple':'#7b1fa2'};
             var col = colorMap[md.colore] || '#388e3c';
             var divIcon = L.divIcon({html:"<div style='background:white;border:2px solid "+col+";width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 4px rgba(0,0,0,0.3);'>"+(md.emoji||"📍")+"</div>",iconSize:[32,32],iconAnchor:[16,16]});
-            mk=L.marker([md.lat,md.lon],{icon:divIcon}).addTo(pMap).bindPopup("<b>📍 "+md.nome+"</b><br>📻 Alias Radio: <b>"+(md.alias||"--")+"</b> - Chiamata<br>🏙️ Comune: "+md.comune+"<br>📍 Via: "+md.via+"<br>Lat: "+md.lat+" Lon: "+md.lon+"<br><small>Emergenza: "+(md.emergenza||"--")+" | Evento: "+(md.evento||"--")+"</small>");
+            mk=L.marker([md.lat,md.lon],{icon:divIcon}).addTo(pMap).bindPopup("<b>📍 "+md.nome+"</b><br>📻 Alias: <b>"+(md.alias||"--")+"</b><br>👤 "+(md.nomeVol||"")+" "+(md.cognomeVol||"")+(md.cellVol ? "<br>📱 Cell: "+md.cellVol : "")+(md.odv ? "<br>📋 ODV: "+md.odv : "")+"<br>🏙️ Comune: "+md.comune+"<br>📍 Via: "+md.via+"<br>Lat: "+md.lat+" Lon: "+md.lon);
         }
         allPrev.push(mk);
     });
@@ -6414,7 +6417,7 @@ elif cur == "Mappe Postazioni":
         var mk;
         if(md.hasFile && md.fileB64){
             var icon = L.icon({iconUrl: "data:image/png;base64," + md.fileB64, iconSize: [40, 40], iconAnchor: [20, 20]});
-            mk = L.marker([md.lat, md.lon], {icon: icon}).addTo(map).bindPopup("<b>📍 " + md.nome + "</b><br>📻 Alias Radio: <b>" + (md.alias||"--") + "</b>" + (md.volontario ? "<br>👤 <b>" + md.volontario + "</b>" + (md.cellVol ? " - 📱 " + md.cellVol : "") + (md.odv ? "<br>📋 ODV: " + md.odv : "") : "") + "<br>🏙️ Comune: " + md.comune + "<br>📍 Via: " + md.via + "<br>Lat: " + md.lat + " Lon: " + md.lon + "<br><small>Emergenza: " + (md.emergenza||"--") + " | Evento: " + (md.evento||"--") + "</small>");
+            mk = L.marker([md.lat, md.lon], {icon: icon}).addTo(map).bindPopup("<b>📍 " + md.nome + "</b><br>📻 Alias: <b>" + (md.alias||"--") + "</b><br>👤 <b>" + (md.nomeVol||"") + " " + (md.cognomeVol||"") + "</b>" + (md.cellVol ? "<br>📱 Cell: " + md.cellVol : "") + (md.odv ? "<br>📋 ODV: " + md.odv : "") + "<br>🏙️ Comune: " + md.comune + "<br>📍 Via: " + md.via + "<br>Lat: " + md.lat + " Lon: " + md.lon);
         } else {
             var colorMapMain = {'red':'#d32f2f','blue':'#1976d2','green':'#388e3c','orange':'#f57c00','purple':'#7b1fa2'};
             var colMain = colorMapMain[md.colore] || '#388e3c';
@@ -6514,7 +6517,9 @@ elif cur == "Mappe Postazioni":
     html_code = html_code.replace("SELECTED_COLOR_PLACEHOLDER", json_lib2.dumps(sel_c))
     html_code = html_code.replace("SELECTED_HASFILE_PLACEHOLDER", json_lib2.dumps(sel_hasfile_main))
     html_code = html_code.replace("SELECTED_FILEB64_PLACEHOLDER", json_lib2.dumps(sel_fileb64_main))
-    st.components.v1.html(html_code, height=700)
+    # FIX EZIO: prima maschera verde solo anteprima (tolta seconda mappa sotto), seconda rossa mappa marker + tabella
+    if map_active == 1:
+        st.components.v1.html(html_code, height=700)
 
     st.divider()
     # Filtro per vedere solo alias da form Alias - richiesta Ezio
