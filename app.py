@@ -5439,8 +5439,8 @@ elif cur == "Mappe Postazioni":
         nome_evento = st.selectbox("Nome Evento (combo)", nomi_eventi, index=0, key=k_map("nome_evento_combo"))
         # FIX EZIO 19-10-2026: 3 COLONNE DIVERSE COME MASCHERA SOPRA - ODV | Volontario | Cell
     st.markdown("---")
-    st.markdown("**👤 Assegna Volontario/Ospite a Postazione - 3 Colonne**")
-    # Prepara liste ODV e Volontari/Ospiti prima delle colonne
+    st.markdown("**👤 Assegna Volontario/Ospite a Postazione - 3 Colonne - FIX ODV+CELL AUTO**")
+    # Prepara liste ODV e Volontari/Ospiti prima delle colonne - FIX DEFINITIVO EZIO
     odv_list = ["ANA Varese", "Carono Pertusella", "Bariola", "GAE", "Protezione Civile", "Ospite - Esterno", "Visitatore"]
     odv_extra = list(set([v.get("ODVAppartenenza","") or v.get("ODV","") for v in st.session_state.get("volontari", []) if v.get("ODVAppartenenza") or v.get("ODV")] + [o.get("ODVAppartenenza","") or o.get("ODV","") for o in st.session_state.get("ospiti", []) if o.get("ODVAppartenenza") or o.get("ODV")]))
     odv_extra = [o for o in odv_extra if o]
@@ -5453,24 +5453,25 @@ elif cur == "Mappe Postazioni":
             nome = f"{v.get('Nome','')} {v.get('Cognome','')}".strip()
             odv = v.get("ODVAppartenenza","") or v.get("ODV","") or ""
             cell = v.get("Cellulare","") or v.get("Cell","") or ""
-            vol_list_raw.append({"label": f"{nome} - {odv} - {cell} [VOL]".strip(" -"), "nome": v.get("Nome",""), "cognome": v.get("Cognome",""), "odv": odv, "cell": cell, "tipo": "VOL"})
+            radio_id = v.get("RadioID","") or v.get("IDRadio","") or ""
+            vol_list_raw.append({"label": f"{nome} - {odv} - {cell} [VOL]".strip(" -"), "nome": v.get("Nome",""), "cognome": v.get("Cognome",""), "odv": odv, "cell": cell, "radio_id": radio_id, "tipo": "VOL"})
     for o in st.session_state.get("ospiti", []):
         if o.get("Nome"):
             nome = f"{o.get('Nome','')} {o.get('Cognome','')}".strip()
             odv = o.get("ODVAppartenenza","") or o.get("ODV","") or "Ospite"
             cell = o.get("Cellulare","") or o.get("Cell","") or ""
-            vol_list_raw.append({"label": f"{nome} - {odv} - {cell} [OSPITE]".strip(" -"), "nome": o.get("Nome",""), "cognome": o.get("Cognome",""), "odv": odv, "cell": cell, "tipo": "OSPITE"})
+            vol_list_raw.append({"label": f"{nome} - {odv} - {cell} [OSPITE]".strip(" -"), "nome": o.get("Nome",""), "cognome": o.get("Cognome",""), "odv": odv, "cell": cell, "radio_id": "", "tipo": "OSPITE"})
     vol_labels = [x["label"] for x in vol_list_raw]
     vol_options = ["-- Seleziona Volontario/Ospite --"] + sorted(vol_labels)[:100]
     st.session_state["_mappe_vol_list_raw"] = vol_list_raw
 
-    # FIX CELL ASSOCIATA A VOLONTARIO/OSPITE - Quando selezioni vedi subito il suo cell
-    # Pre-calcola cell dalla selezione precedente (se esiste)
+    # FIX DEFINITIVO - Ordine corretto: prima volontario, poi ODV e Cell si auto-riempiono
     sel_vol_prec = st.session_state.get(k_map("adv_vol_combo"), "-- Seleziona Volontario/Ospite --")
     cell_auto = ""
     odv_auto = ""
     nome_auto = ""
     cogn_auto = ""
+    radio_auto = ""
     if sel_vol_prec != "-- Seleziona Volontario/Ospite --":
         try:
             m_prec = next((x for x in vol_list_raw if x["label"] == sel_vol_prec), None)
@@ -5479,54 +5480,56 @@ elif cur == "Mappe Postazioni":
                 odv_auto = m_prec.get("odv","")
                 nome_auto = m_prec.get("nome","")
                 cogn_auto = m_prec.get("cognome","")
+                radio_auto = m_prec.get("radio_id","")
         except:
             pass
 
-    # UNICA RIGA - 3 COLONNE DIVERSE COME SOPRA
+    # 3 COLONNE - ORDINE: ODV (auto) | Volontario | Cell (auto) - ODV e Cell si collegano a volontario
     col_ass1, col_ass2, col_ass3 = st.columns(3)
-    with col_ass1:
-        # Se ODV auto da selezione volontario, usa quello come default
-        default_odv_idx = 0
-        if odv_auto and odv_auto in odv_options:
-            default_odv_idx = odv_options.index(odv_auto)
-        sel_odv_combo = st.selectbox("📋 ODV (combo)", odv_options, index=default_odv_idx, key=k_map("adv_odv_combo"))
-        if sel_odv_combo == "-- Altro --":
-            marker_odv = st.text_input("Altro ODV", key=k_map("adv_marker_odv_new"), placeholder="ANA Sezione Varese")
-        elif sel_odv_combo == "-- Seleziona ODV --":
-            marker_odv = odv_auto if odv_auto else ""
-        else:
-            marker_odv = sel_odv_combo
-            if odv_auto and sel_odv_combo == "-- Seleziona ODV --":
-                marker_odv = odv_auto
     with col_ass2:
-        sel_vol_combo = st.selectbox("👤 Volontario/Ospite (Volontari+Ospiti)", vol_options, key=k_map("adv_vol_combo"), help="Lista unita da Volontari e Ospiti - quando selezioni vedi Cell a destra")
-    with col_ass3:
-        # FIX CELL ASSOCIATA A VOLONTARIO - Quando selezioni volontario, aggancia il suo cell - Ezio richiesta
-        cell_trovata = ""
-        odv_trovata = ""
+        sel_vol_combo = st.selectbox("👤 Volontario/Ospite (Volontari+Ospiti)", vol_options, key=k_map("adv_vol_combo"), help="Quando selezioni, ODV e Cell si riempiono automatico da anagrafica volontario")
+        # Calcola subito ODV e Cell dalla selezione corrente per display
+        cell_trovata = cell_auto
+        odv_trovata = odv_auto
+        nome_trovata = nome_auto
+        cogn_trovata = cogn_auto
+        radio_trovata = radio_auto
         if sel_vol_combo != "-- Seleziona Volontario/Ospite --":
             try:
                 m_curr = next((x for x in vol_list_raw if x["label"] == sel_vol_combo), None)
                 if m_curr:
                     cell_trovata = str(m_curr.get("cell","") or "").strip()
                     odv_trovata = str(m_curr.get("odv","") or "").strip()
+                    nome_trovata = m_curr.get("nome","")
+                    cogn_trovata = m_curr.get("cognome","")
+                    radio_trovata = m_curr.get("radio_id","")
             except:
                 pass
-        key_cell = k_map("adv_marker_cell_vol")
-        # Usa cell_trovata se esiste, altrimenti usa cell_auto già calcolato da selezione precedente
-        final_cell_value = cell_trovata if cell_trovata else cell_auto
-        # FIX DEFINITIVO EZIO - NON toccare session_state di widget già istanziato (evita StreamlitWidgetAlreadyInstantiatedError)
-        # Usiamo solo variabili locali per display
-        marker_cell_vol = st.text_input("📱 Cell. (da Volontario/Ospite)", value=final_cell_value, key=key_cell, placeholder="Si riempie auto quando selezioni volontario", help=f"Cell di {sel_vol_combo} - auto agganciato da Volontari/Ospiti - ODV: {odv_trovata}")
-        # Per salvataggio usa valore da session_state o final
-        if final_cell_value:
-            marker_cell_vol = final_cell_value
-        elif st.session_state.get(key_cell):
-            marker_cell_vol = st.session_state.get(key_cell)
     
-    # Auto-compila variabili per salvataggio
-    marker_nome_vol = nome_auto
-    marker_cognome_vol = cogn_auto
+    with col_ass1:
+        # ODV - Si auto-riempie quando selezioni volontario
+        default_odv_idx = 0
+        eff_odv = odv_trovata if odv_trovata else odv_auto
+        if eff_odv and eff_odv in odv_options:
+            default_odv_idx = odv_options.index(eff_odv)
+        sel_odv_combo = st.selectbox("📋 ODV (auto da Volontario)", odv_options, index=default_odv_idx, key=k_map("adv_odv_combo"), help=f"Si riempie auto da volontario: {odv_trovata}")
+        if sel_odv_combo == "-- Altro --":
+            marker_odv = st.text_input("Altro ODV", key=k_map("adv_marker_odv_new"), placeholder="ANA Sezione Varese")
+        elif sel_odv_combo == "-- Seleziona ODV --":
+            marker_odv = eff_odv if eff_odv else ""
+        else:
+            marker_odv = sel_odv_combo
+    
+    with col_ass3:
+        # CELL - Si auto-riempie quando selezioni volontario
+        key_cell = k_map("adv_marker_cell_vol")
+        final_cell_value = cell_trovata if cell_trovata else cell_auto
+        marker_cell_vol = st.text_input("📱 Cell. (auto da Volontario)", value=final_cell_value, key=key_cell, placeholder="Si riempie auto quando selezioni volontario", help=f"Cell di {sel_vol_combo} - ODV: {odv_trovata} - Radio: {radio_trovata}")
+    
+    # Auto-compila variabili per salvataggio - usa sempre dati da volontario selezionato
+    marker_nome_vol = nome_trovata if 'nome_trovata' in locals() else nome_auto
+    marker_cognome_vol = cogn_trovata if 'cogn_trovata' in locals() else cogn_auto
+    marker_radio_vol = radio_trovata if 'radio_trovata' in locals() else radio_auto
     if sel_vol_combo != "-- Seleziona Volontario/Ospite --":
         try:
             match = next((x for x in vol_list_raw if x["label"] == sel_vol_combo), None)
@@ -5537,6 +5540,8 @@ elif cur == "Mappe Postazioni":
                     marker_odv = match.get("odv")
                 if match.get("cell"):
                     marker_cell_vol = match.get("cell")
+                if match.get("radio_id"):
+                    marker_radio_vol = match.get("radio_id")
         except:
             pass
     with c2:
@@ -5705,6 +5710,78 @@ elif cur == "Mappe Postazioni":
                 st.rerun()
             except Exception as e:
                 st.error(f"❌ Errore: {e}")
+
+    st.divider()
+    # === EXPORT MAPPE - Excel e PDF con Postazione, Alias, Cognome Nome, Cell, ID Radio - Richiesta Ezio ===
+    st.markdown("#### 📊 Export Postazioni - Excel / PDF")
+    all_markers_export = st.session_state.get("mappa_avanzata_markers", [])
+    if all_markers_export:
+        # Prepara dati per export con RadioID da volontari
+        export_rows = []
+        volontari_db = st.session_state.get("volontari", [])
+        def trova_radio_id(nome, cognome, cell):
+            for v in volontari_db:
+                if v.get("Nome","").strip().lower() == nome.strip().lower() and v.get("Cognome","").strip().lower() == cognome.strip().lower():
+                    return v.get("RadioID","") or v.get("IDRadio","") or v.get("Radio","")
+                # Prova anche per cell
+                if cell and v.get("Cellulare","") == cell:
+                    return v.get("RadioID","") or ""
+            return ""
+        
+        for m in all_markers_export:
+            nome_v = m.get("NomeVolontario","")
+            cogn_v = m.get("CognomeVolontario","")
+            cognome_nome = f"{cogn_v} {nome_v}".strip()
+            if not cognome_nome:
+                cognome_nome = m.get("VolontarioCompleto","")[:30]
+            cell_v = m.get("CellVolontario","") or m.get("Cell","")
+            radio_id = m.get("RadioID","") or m.get("IDRadio","") or trova_radio_id(nome_v, cogn_v, cell_v)
+            # Se ancora vuoto, cerca da marker_radio_vol salvato
+            if not radio_id and "RadioID" in m:
+                radio_id = m.get("RadioID","")
+            export_rows.append({
+                "Postazione": m.get("Nome",""),
+                "Alias": m.get("Alias",""),
+                "Cognome Nome": cognome_nome,
+                "Cell.": cell_v,
+                "ID Radio": radio_id,
+                "ODV": m.get("ODV",""),
+                "Comune": m.get("Comune",""),
+                "Via": m.get("Via",""),
+                "Lat": m.get("Lat",""),
+                "Lon": m.get("Lon","")
+            })
+        
+        import pandas as pd
+        df_export = pd.DataFrame(export_rows)
+        st.dataframe(df_export[["Postazione", "Alias", "Cognome Nome", "Cell.", "ID Radio"]], use_container_width=True)
+        
+        c_exp1, c_exp2, c_exp3 = st.columns(3)
+        with c_exp1:
+            try:
+                # Excel export
+                excel_data = to_excel(df_export)
+                st.download_button("⬇️ Excel Postazioni - Postazione, Alias, Cognome Nome, Cell, ID Radio", data=excel_data, file_name=f"postazioni_GAE_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True, key="export_excel_postazioni")
+            except Exception as e:
+                st.error(f"Errore Excel: {e}")
+        with c_exp2:
+            try:
+                # PDF export
+                pdf_data = to_pdf(df_export[["Postazione", "Alias", "Cognome Nome", "Cell.", "ID Radio"]], "ELENCO POSTAZIONI GAE - Postazione, Alias, Cognome Nome, Cell, ID Radio")
+                st.download_button("⬇️ PDF Postazioni - Postazione, Alias, Cognome Nome, Cell, ID Radio", data=pdf_data, file_name=f"postazioni_GAE_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf", mime="application/pdf", use_container_width=True, key="export_pdf_postazioni")
+            except Exception as e:
+                st.error(f"Errore PDF: {e}")
+        with c_exp3:
+            if st.button("🗑️ Azzera Tutte Postazioni", key="azzera_tutte_postazioni_export", use_container_width=True):
+                st.session_state.mappa_avanzata_markers = []
+                try:
+                    save_all_data_persistente()
+                except:
+                    pass
+                st.warning("Tutte le postazioni azzerate")
+                st.rerun()
+    else:
+        st.info("Nessuna postazione salvata - Inserisci da maschera sopra")
 
     st.divider()
     st.markdown("#### 🗺️ Anteprima - Tutti i marker visibili - +/- sotto")
