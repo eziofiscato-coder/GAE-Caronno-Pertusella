@@ -3530,7 +3530,7 @@ elif cur == "Volontari (con foto)":
 
 
 elif cur == "Ospiti":
-    hdr_form("DB OSPITI - Pari pari a Volontari - Selezione e Modifica Schede - FIX TypeError")
+    hdr_form("DB OSPITI")
     
     # Inizializza lista ospiti se manca
     if "ospiti" not in st.session_state:
@@ -3924,7 +3924,7 @@ elif cur == "DB Radio":
 
 elif cur == "Consegna Radio":
     # hdr() rimosso - richiesta Ezio: su form non mettere in alto intestazione con i loghi
-    hdr_form("CONSEGNA RADIO - Consegna e Riconsegna con note problemi + Scanner CF")
+    hdr_form("CONSEGNA RADIO")
 
     # CAMPI BARCODE - CF + MATRICOLA RADIO - Richiesta Ezio - Matricola associata a DB Radio
     # Etichetta DOPPIO SCANNER rimossa - pulizia Ezio
@@ -4081,7 +4081,7 @@ elif cur == "Consegna Radio":
 
 
 elif cur == "Alias Radio":
-    hdr_form("ALIAS RADIO - Alias + Volontario Cognome Nome + Canale Radio")
+    hdr_form("ALIAS RADIO")
 
     # Maschera verde come altri form - spostata in alto - RIGA 2867
     st.markdown('<div style="background:#C8E6C9;padding:12px;border-radius:10px;border:2px solid #1A5D1A;margin:0;">', unsafe_allow_html=True) # Fix spazio - no margin
@@ -4278,7 +4278,7 @@ elif cur == "Eventi":
         edit_mode_em = False
         edit_data_em = {}
     
-    hdr_form("EVENTI - GESTIONE EMERGENZE ED EVENTI - Protezione Civile ANA Varese")
+    hdr_form("EVENTI - GESTIONE EMERGENZE ED EVENTI")
 
     st.markdown("""
     <div style="background:#fff3cd;padding:10px;border-radius:8px;border-left:4px solid #FF9800;margin-bottom:12px;">
@@ -4460,7 +4460,7 @@ elif cur == "Eventi":
 
 elif cur == "Tabella Emergenze":
     # TABELLA EMERGENZE - Ripristinata - Richiesta Ezio: hai tolto anche form emergenza
-    hdr_form("TABELLA EMERGENZE - Clicca icona per aprire Eventi/Emergenza")
+    hdr_form("TABELLA EMERGENZA")
     
     st.markdown("""
     <div style="background:#fff3cd;padding:10px;border-radius:8px;border-left:4px solid #FF9800;margin-bottom:12px;">
@@ -4978,7 +4978,7 @@ elif cur == "Interventi Emergenza":
 
 elif cur == "Tabella Interventi Emergenza":
     # TABELLA INTERVENTI - FIX COMPLETO - Tipo colorato + Icona cliccabile apre Interventi Emergenza
-    hdr_form("TABELLA INTERVENTI EMERGENZA - TIPO COLORATO + ICONA CLICCABILE")
+    hdr_form("TABELLA INTERVENTI EMERGENZA")
 
     st.markdown("""
     <div style="background:#e3f2fd;padding:10px;border-radius:8px;border-left:4px solid #1976d2;margin-bottom:12px;">
