@@ -5597,12 +5597,17 @@ elif cur == "Mappe Postazioni":
                 pass
     
     with col_ass1:
-        # ODV - Si auto-riempie quando selezioni volontario
+        # ODV - Si auto-riempie quando selezioni volontario - FIX AUTOMATICO
         default_odv_idx = 0
         eff_odv = odv_trovata if odv_trovata else odv_auto
         if eff_odv and eff_odv in odv_options:
             default_odv_idx = odv_options.index(eff_odv)
-        sel_odv_combo = st.selectbox("📋 ODV (auto da Volontario)", odv_options, index=default_odv_idx, key=k_map("adv_odv_combo"), help=f"Si riempie auto da volontario: {odv_trovata}")
+        # FIX: Forza ODV in session_state quando selezioni volontario
+        key_odv = k_map("adv_odv_combo")
+        if eff_odv and eff_odv in odv_options:
+            if st.session_state.get(key_odv) != eff_odv and sel_vol_combo != "-- Seleziona Volontario/Ospite --":
+                st.session_state[key_odv] = eff_odv
+        sel_odv_combo = st.selectbox("📋 ODV (auto da Volontario)", odv_options, index=default_odv_idx, key=key_odv, help=f"Si riempie auto da volontario: {odv_trovata} - AUTO da anagrafica")
         if sel_odv_combo == "-- Altro --":
             marker_odv = st.text_input("Altro ODV", key=k_map("adv_marker_odv_new"), placeholder="ANA Sezione Varese")
         elif sel_odv_combo == "-- Seleziona ODV --":
@@ -5611,10 +5616,17 @@ elif cur == "Mappe Postazioni":
             marker_odv = sel_odv_combo
     
     with col_ass3:
-        # CELL - Si auto-riempie quando selezioni volontario
+        # CELL - Si auto-riempie quando selezioni volontario - FIX AUTOMATICO Richiesta Ezio
         key_cell = k_map("adv_marker_cell_vol")
         final_cell_value = cell_trovata if cell_trovata else cell_auto
-        marker_cell_vol = st.text_input("📱 Cell. (auto da Volontario)", value=final_cell_value, key=key_cell, placeholder="Si riempie auto quando selezioni volontario", help=f"Cell di {sel_vol_combo} - ODV: {odv_trovata} - Radio: {radio_trovata}")
+        # FIX: Aggiorna session_state quando selezioni volontario, così cell si riempie automatico
+        if final_cell_value:
+            # Se volontario selezionato ha cell, forza aggiornamento in session_state
+            if st.session_state.get(key_cell, "") != final_cell_value:
+                # Solo se volontario cambiato, aggiorna
+                if sel_vol_combo != "-- Seleziona Volontario/Ospite --":
+                    st.session_state[key_cell] = final_cell_value
+        marker_cell_vol = st.text_input("📱 Cell. (auto da Volontario)", value=final_cell_value, key=key_cell, placeholder="Si riempie auto quando selezioni volontario", help=f"Cell di {sel_vol_combo} - ODV: {odv_trovata} - Radio: {radio_trovata} - AUTO da anagrafica")
     
     # Auto-compila variabili per salvataggio - usa sempre dati da volontario selezionato
     marker_nome_vol = nome_trovata if 'nome_trovata' in locals() else nome_auto
